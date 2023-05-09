@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		{% if title %}
+		    <title>Information Retrieval - {{ title }}</title>
+		{% else %}
+		    <title>Information Retrieval System</title>
+		{% endif %}
+	</head>
+	<body>
+		<nav class="bg-black text-white p-5 fixed top-0 min-w-full flex justify-between">
+			<a href="/" class="font-bold">Home</a>
+			<ul class="flex justify-end items-center">
+				<li class="mx-2 font-bold">
+					<a href="/documents">Documents</a>
+				</li>
+				<li class="mx-2 font-bold">
+					<a href="">Terms</a>
+				</li>
+			</ul>
+		</nav>
+		<main>
+			{% block content %}
+        	{% endblock content %}
+		</main>
+	</body>
+</html>

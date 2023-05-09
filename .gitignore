@@ -1,0 +1,4 @@
+.prettierignore
+.env
+tailwind.config.js
+__pycache__

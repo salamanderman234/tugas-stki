@@ -1,0 +1,38 @@
+{% extends "layouts/main.html" %}
+{% block content %}
+    <div class="flex justify-center items-center min-h-screen">
+        <div class="flex flex-col justify-center items-center w-full px-20">
+            <h1 class="font-extrabold text-5xl block">Hasil</h1>
+            <div class="overflow-auto max-h-72 mt-7 w-full">
+                <table class="border w-full">
+                    <thead class="">
+                        <tr>
+                            <th class="border border-black px-3 py-1">Ranking</th>
+                            <th class="border border-black px-3 py-1">Dokumen ID</th>
+                            <th class="border border-black px-3 py-1">Judul</th>
+                            <th class="border border-black px-3 py-1">Konten</th>
+                            <th class="border border-black px-3 py-1">Skor Kesamaan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if documents %}
+                            {% for document in documents %}
+                                <tr>
+                                    <td class="border border-black text-center px-3 py-2">{{ loop.index }}</td>
+                                    <td class="border border-black text-center px-3 py-2">{{ document.id }}</td>
+                                    <td class="border border-black text-center px-3 py-2">{{ document.name }}</td>
+                                    <td class="border border-black text-center px-3 py-2">{{ document.content }}</td>
+                                    <td class="border border-black text-center px-3 py-2">{{ '%0.2f'| format(document.similarity|float) }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td class="border border-black text-center px-3 py-2" colspan="5">Tidak ada dokumen yang relevan</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content%}
