@@ -1,0 +1,32 @@
+{% extends "layouts/main.html" %}
+{% block content %}
+    <div class="flex justify-center items-center min-h-screen">
+        <div class="flex flex-col justify-center items-center w-full px-20">
+            <h1 class="font-extrabold text-5xl block">Terms</h1>
+            <div class="overflow-auto max-h-72 mt-7 w-full">
+                <table class="border w-full">
+                    <thead class="">
+                        <tr>
+                            <th class="border border-black px-3 py-1">Term</th>
+                            <th class="border border-black px-3 py-1">Frekuensi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if terms %}
+                            {% for term, freq in terms.items() %}
+                                <tr>
+                                    <td class="border border-black text-center px-3 py-2">{{ term }}</td>
+                                    <td class="border border-black text-center px-3 py-2">{{ freq }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td class="border border-black text-center px-3 py-2" colspan="2">Tidak ada term</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock content%}
