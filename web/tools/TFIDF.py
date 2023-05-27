@@ -1,51 +1,39 @@
 from math import log10
 
-class TFIDFTool :
-    def __init__(self) -> None:
-        pass
+class TFIDFTool():
+    def __calculate_ddf(self, documents_tf: dict) -> dict:
+        result = {}
+        df_list = {}
+        for term, tf in documents_tf.items():
+            df = 0
+            for f in tf:
+                df += 1 if f > 0 else 0
+                df_list[term] = df
+            result[term] = len(tf) / df
         
-    def calculate_weight(self ,documents: list, lang: str = "eng") -> map:
-        documents_container = []
-
-        df = {}
-        idf = {}
-
-        for document in documents :
-            id = document["id"]
-            content = document["content"]
-            title = document["name"]
-            terms_dist = document["term_dist"]
-
-            for term in terms_dist:
-                if term["term"] in df:
-                    df[term["term"]] += 1
-                else:
-                    df[term["term"]] = 1
-
-            new = {
-                "id" : id,
-                "name": title,
-                "content" : content,
-                "terms_dist": terms_dist
-            }
-
-            documents_container.append(new)
-        
-        documents_count = len(documents_container)
-        for term in df:
-            df[term] = documents_count / df[term]
-            idf[term] = log10(df[term])
-            for index,document in enumerate(documents_container):
-                term_dist = list(filter(lambda term_dist: term_dist['term'] == term, documents_container[index]["terms_dist"]))
-                # term_dist = next(item for item in documents_container[index]["terms_dist"] if item["term"] == term)
-                if "tf-idf" in documents_container[index] and len(term_dist) == 1:
-                    documents_container[index]["tf-idf"][term] =  term_dist[0]["freq"] * idf[term]
-                elif len(term_dist) == 1:
-                    documents_container[index]["tf-idf"] = { term :  term_dist[0]["freq"] * idf[term] }
-
-        result = {
-            "idf_list" : idf,
-            "documents": documents_container
+        self.df = result
+        return {
+            "result" : result,
+            "df_list" : df_list
         }
-
+    
+    def _calculate_idf(self, df_list: dict) -> dict:
+        result = {}
+        for term, df in df_list.items():
+            result[term] = log10(df)
         return result
+
+    def process(self, documents_tf: dict) -> dict:
+        result = {}
+        ddf_list = self.__calculate_ddf(documents_tf=documents_tf)
+        idf_list = self._calculate_idf(df_list=ddf_list["result"])
+
+        for term, tfs in documents_tf.items():
+            result[term] = [tf*idf_list[term] for tf in tfs]
+        
+        return {
+            "ddf_list" : ddf_list["result"],
+            "df_list": ddf_list["df_list"],
+            "idf_list": idf_list,
+            "tf_idf_list" : result
+        }

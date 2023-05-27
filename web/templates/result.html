@@ -1,35 +1,195 @@
 {% extends "layouts/main.html" %}
 {% block content %}
     <div class="flex justify-center items-center min-h-screen">
-        <div class="flex flex-col justify-center items-center w-full px-20">
+        <div class="flex flex-col justify-center items-center w-full px-20 mt-10">
             <h1 class="font-extrabold text-5xl block">Hasil</h1>
-            <div class="overflow-auto max-h-72 mt-7 w-full">
+            <div class="overflow-auto max-h-96 mt-7 w-full">
+                <h2 class="font-bold mt-3">TF-IDF</h2>
                 <table class="border w-full">
-                    <thead class="">
+                    <thead>
                         <tr>
-                            <th class="border border-black px-3 py-1">Ranking</th>
-                            <th class="border border-black px-3 py-1">Dokumen ID</th>
-                            <th class="border border-black px-3 py-1">Judul</th>
-                            <th class="border border-black px-3 py-1">Konten</th>
-                            <th class="border border-black px-3 py-1">Skor Kesamaan</th>
+                            <th class="border border-black px-3 py-1" rowspan="2">token</th>
+                            <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length + 1 }}">tf</th>
+                            <th class="border border-black px-3 py-1" rowspan="2">df</th>
+                            <th class="border border-black px-3 py-1" rowspan="2">d/df</th>
+                            <th class="border border-black px-3 py-1" rowspan="2">idf</th>
+                            <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length + 1}}">tf-idf</th>
+                        </tr>
+                        <tr>
+                            <th class="border border-black px-3 py-1">Q</th>
+                            {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
+                                <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                            {% endfor %}
+                            <th class="border border-black px-3 py-1">Q</th>
+                            {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
+                                <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                            {% endfor %}
                         </tr>
                     </thead>
                     <tbody>
-                        {% if documents %}
-                            {% for document in documents %}
+                        {% if tfidf_vsm_result %}
+                            {% for term, tf in tfidf_vsm_result.query_matrix.result.items() %}
                                 <tr>
-                                    <td class="border border-black text-center px-3 py-2">{{ loop.index }}</td>
-                                    <td class="border border-black text-center px-3 py-2">{{ document.id }}</td>
-                                    <td class="border border-black text-center px-3 py-2">{{ document.name }}</td>
-                                    <td class="border border-black text-center px-3 py-2">{{ document.content }}</td>
-                                    <td class="border border-black text-center px-3 py-2">{{ '%0.2f'| format(document.similarity|float) }}</td>
+                                    <td class="border border-black text-center px-3 py-2">{{ term }}</td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {{tf[0]}}
+                                    </td>
+                                    {%  if term in tfidf_vsm_result.matrix.result %}
+                                        {% for document_tf in tfidf_vsm_result.matrix.result[term] %}
+                                            <td class="border border-black text-center px-3 py-2">{{ document_tf }}</td>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for zero in range(tfidf_vsm_result.matrix.map|length) %}
+                                            <td class="border border-black text-center px-3 py-2">0</td>
+                                        {% endfor %}
+                                    {% endif %}
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {% if term in tfidf_vsm_result.document_tfidf.df_list %}
+                                            {{ tfidf_vsm_result.document_tfidf.df_list[term] }}
+                                        {% else %}
+                                            {{ 0 }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {% if term in tfidf_vsm_result.document_tfidf.ddf_list %}
+                                            {{ '%0.1f'|format(tfidf_vsm_result.document_tfidf.ddf_list[term]|float) }}
+                                        {% else %}
+                                            {{ 0 }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {% if term in tfidf_vsm_result.document_tfidf.idf_list %}
+                                            {{ '%0.3f'|format(tfidf_vsm_result.document_tfidf.idf_list[term]|float) }}
+                                        {% else %}
+                                            {{ 0 }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {% if term in tfidf_vsm_result.query_tfidf %}
+                                            {{ '%0.3f'|format(tfidf_vsm_result.query_tfidf[term][0]|float) }}
+                                        {% else %}
+                                            {{ 0 }}
+                                        {% endif %}
+                                    </td>
+                                    {% if term in tfidf_vsm_result.document_tfidf.tf_idf_list %}
+                                        {% for document_tfidf in tfidf_vsm_result.document_tfidf.tf_idf_list[term] %}
+                                            <td class="border border-black text-center px-3 py-2">
+                                                {{ '%0.3f'|format(document_tfidf|float) }}
+                                            </td>                                 
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for zero in range(tfidf_vsm_result.matrix.map|length) %}
+                                            <td class="border border-black text-center px-3 py-2">0</td>
+                                        {% endfor %}
+                                    {% endif %}
                                 </tr>
                             {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td class="border border-black text-center px-3 py-2" colspan="5">Tidak ada dokumen yang relevan</td>
-                            </tr>
                         {% endif %}
+                    </tbody>
+                </table>
+                <h2 class="font-bold mt-5">VSM</h2>
+                <table class="border w-full">
+                    <thead>
+                        <tr>
+                            <th class="border border-black px-3 py-1" rowspan="2">token</th>
+                            <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length + 1 }}">tf-idf^2</th>
+                            <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length}}">Q*D</th>
+                        </tr>
+                        <tr>
+                            <th class="border border-black px-3 py-1">Q</th>
+                            {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
+                                <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                            {% endfor %}
+                            {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
+                                <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tfidf_vsm_result %}
+                            {% for term, tf in tfidf_vsm_result.query_matrix.result.items() %}
+                                <tr>
+                                    <td class="border border-black text-center px-3 py-2">{{ term }}</td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {% if term in tfidf_vsm_result.vsm_result.query_vector.tfidf_pow %}
+                                            {{ '%0.3f'|format(tfidf_vsm_result.vsm_result.query_vector.tfidf_pow[term][0]|float) }}
+                                        {% endif %}
+                                    </td>
+                                    {% if term in tfidf_vsm_result.vsm_result.documents_vector.tfidf_pow %}
+                                        {% for document_vector in tfidf_vsm_result.vsm_result.documents_vector.tfidf_pow[term] %}
+                                            <td class="border border-black text-center px-3 py-2">
+                                                {{ '%0.3f'|format(document_vector|float) }}
+                                            </td>                                 
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for zero in range(tfidf_vsm_result.matrix.map|length) %}
+                                            <td class="border border-black text-center px-3 py-2">0</td>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% if term in tfidf_vsm_result.vsm_result.documents_dot_product.query_times_document %}
+                                        {% for document_dot_product in tfidf_vsm_result.vsm_result.documents_dot_product.query_times_document[term] %}
+                                            <td class="border border-black text-center px-3 py-2">
+                                                {{ '%0.4f'|format(document_dot_product|float) }}
+                                            </td>                                 
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for zero in range(tfidf_vsm_result.matrix.map|length) %}
+                                            <td class="border border-black text-center px-3 py-2">0</td>
+                                        {% endfor %}
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                        <tr>
+                            <td rowspan="2" class="border border-black text-center px-3 py-2"></td>
+                            <td class="border border-black text-center px-3 py-2 font-bold">Sqrt(Q)</td>
+                            <td colspan="{{ tfidf_vsm_result.matrix.map|length}}" class="border font-bold border-black text-center px-3 py-2">Sqrt(D)</td>
+                            <td colspan="{{ tfidf_vsm_result.matrix.map|length}}" class="border font-bold border-black text-center px-3 py-2">Sum(Q*D)</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black text-center px-3 py-2 font-bold">
+                                {{ '%0.4f'|format(tfidf_vsm_result.vsm_result.query_vector.vector[0]|float) }}
+                            </td>
+                            {% for document_vector in tfidf_vsm_result.vsm_result.documents_vector.vector %}
+                                <td class="border border-black text-center px-3 py-2  font-bold">
+                                    {{ '%0.4f'|format(document_vector|float) }}
+                                </td>
+                            {% endfor %}
+                            {% for document_dot_product in tfidf_vsm_result.vsm_result.documents_dot_product.dot_product_list %}
+                                <td class="border border-black text-center px-3 py-2  font-bold">
+                                    {{ '%0.4f'|format(document_dot_product|float) }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+                <h2 class="font-bold mt-3">Score</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <td class="border border-black text-center px-3 py-2  font-bold">Rank</td>
+                            <td class="border border-black text-center px-3 py-2  font-bold">Document ID</td>
+                            <td class="border border-black text-center px-3 py-2  font-bold">Score</td>
+                            <td class="border border-black text-center px-3 py-2  font-bold">Content</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for id, score in tfidf_vsm_result.vsm_result.result.items() %}
+                        <tr>
+                                <td class="border border-black text-center px-3 py-2">{{loop.index}}</td>
+                                <td class="border border-black text-center px-3 py-2">{{id}}</td>
+                                <td class="border border-black text-center px-3 py-2">
+                                    {{ '%0.4f'|format(score|float) }}
+                                </td>
+                                <td class="border border-black text-center px-3 py-2">
+                                    {% for document in documents %}
+                                        {% if document.id == id %}
+                                            {{ document.content }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>

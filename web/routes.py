@@ -1,13 +1,13 @@
 from flask import render_template, request, redirect, url_for
 from web.models import Document, Term, TermsDistribution, Deconstructor
-from web.tools import preprocess, TFIDF, VSM
 from web import app
 from web import db
+from web.tools import InvertedIndexMatrix, TFIDF, preprocess, VSM
 
 deconstructor = Deconstructor()
+matrix_builder = InvertedIndexMatrix.InvertedIndexTool()
+tfidf_builder = TFIDF.TFIDFTool()
 preprocessor = preprocess.Preprocessor()
-tfdf_calculator = TFIDF.TFIDFTool()
-vsm_tool = VSM.VSMTool()
 
 @app.route("/")
 def index():
@@ -45,28 +45,46 @@ def save():
     db.session.commit() 
     return redirect(url_for("show_all_documents"))
 
-@app.route("/result")
-def result():
-    query = request.args.get("q")
-    documents = get_all_documents(is_get_dist=True)
-    
-    tfidf_result = search_using_tfidf(query=query, documents=documents)
-
-    return render_template("result.html", title="Hasil pencarian" ,documents=tfidf_result)
 
 def get_all_documents(is_get_dist=False) -> list :
     documents = Document.query.all()
     documents = deconstructor.bulk_deconstruct(documents)
     if is_get_dist:
         for index, document in enumerate(documents):
-            documents[index]["term_dist"] = preprocessor.process(document["content"])
-            print("asiap")
+            documents[index]["tf"] = preprocessor.process(document["content"])
 
     return documents
 
-def search_using_tfidf(query: str, documents: list) -> list:
-    query_terms = preprocessor.process(query)
-    tfidf_result = tfdf_calculator.calculate_weight(documents=documents)
-    result = vsm_tool.rank(documents=tfidf_result["documents"], idf_list=tfidf_result["idf_list"], queries=query_terms)
+@app.route("/result")
+def result():
+    query = request.args.get("q")
+    documents = get_all_documents(is_get_dist=True)
+    
+    tfidf_vsm_result = search_using_tfidf(query=query, documents=documents)
+    
 
-    return result
+    return render_template("result.html", title="Hasil pencarian" ,tfidf_vsm_result=tfidf_vsm_result, documents=documents)
+
+def search_using_tfidf(query: str, documents: list) -> list:
+    matrix = matrix_builder.build(documents=documents)
+    document_weight_list = tfidf_builder.process(matrix["result"])
+    query_matrix = matrix_builder.build(documents=[{
+        "id" : "-1",
+        "content": query,
+        "tf": preprocessor.process(query)
+    }])
+    query_weight_list = {}
+    for query_term, query_tf in query_matrix["result"].items():
+        if query_term in document_weight_list["idf_list"]:
+            if query_term not in query_weight_list:
+                query_weight_list[query_term] = [document_weight_list["idf_list"][query_term] * query_tf[0]]
+    rank_tool = VSM.VSMTool(matrix["map"])
+    result = rank_tool.rank(query_weight_list, document_weight_list["tf_idf_list"])
+
+    return {
+        "matrix" : matrix,
+        "query_matrix": query_matrix,
+        "query_tfidf" : query_weight_list,
+        "document_tfidf" : document_weight_list,
+        "vsm_result" : result
+    }

@@ -58,4 +58,4 @@ class Preprocessor :
         tokens = self.__stem(tokens)
         freq_dist = self.__dist(tokens)
 
-        return [ [token[0], token[1]] for token in freq_dist]
+        return [{"term" : token[0], "freq": token[1]} for token in freq_dist]
