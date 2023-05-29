@@ -1,12 +1,13 @@
 from flask import render_template, request, redirect, url_for
-from web.models import Document, Term, TermsDistribution, Deconstructor
+from web.models import Document, Deconstructor
 from web import app
 from web import db
-from web.tools import InvertedIndexMatrix, TFIDF, preprocess, VSM
+from web.tools import InvertedIndexMatrix, TFIDF, preprocess, VSM, IncidenceMatrix
 
 deconstructor = Deconstructor()
 matrix_builder = InvertedIndexMatrix.InvertedIndexTool()
 tfidf_builder = TFIDF.TFIDFTool()
+incidence_matrix_builder = IncidenceMatrix.IncidenceMatrixTool()
 preprocessor = preprocess.Preprocessor()
 
 @app.route("/")
@@ -58,12 +59,22 @@ def get_all_documents(is_get_dist=False) -> list :
 @app.route("/result")
 def result():
     query = request.args.get("q")
+    is_stoplist = request.args.get("remove_stoplist")
+    
+    if not query:
+        return redirect("/")
+    if is_stoplist:
+        preprocessor.set_stop_list(False)
+    else:
+        preprocessor.set_stop_list(True)
+    
     documents = get_all_documents(is_get_dist=True)
     
     tfidf_vsm_result = search_using_tfidf(query=query, documents=documents)
-    
+    incidence_matrix_result = search_using_incidence_matrix(query=query, documents=documents)
 
-    return render_template("result.html", title="Hasil pencarian" ,tfidf_vsm_result=tfidf_vsm_result, documents=documents)
+    
+    return render_template("result.html", title="Hasil pencarian" ,tfidf_vsm_result=tfidf_vsm_result, documents=documents, incidence_matrix_result=incidence_matrix_result)
 
 def search_using_tfidf(query: str, documents: list) -> list:
     matrix = matrix_builder.build(documents=documents)
@@ -88,3 +99,8 @@ def search_using_tfidf(query: str, documents: list) -> list:
         "document_tfidf" : document_weight_list,
         "vsm_result" : result
     }
+
+def search_using_incidence_matrix(query: str, documents: list, using_stopwords=True) -> dict:
+    matrix = incidence_matrix_builder.build_and_rank(query, documents, using_stopwords=using_stopwords)
+
+    return matrix

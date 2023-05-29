@@ -1,4 +1,4 @@
-import preprocess
+from . import preprocess
 
 class IncidenceMatrixTool : 
     def __init__(self) -> None:
@@ -42,8 +42,11 @@ class IncidenceMatrixTool :
                 value = 1 if document_tf and value else 0
             result.append(value)
         
-        return {"map" : self.map, "result" : result}
+        return {"map" : self.map, "matrix": self.matrix ,"result" : result}
 
-    def build_and_rank(self, query: str, documents: list) -> dict:
+    def build_and_rank(self, query: str, documents: list, using_stopwords=True) -> dict:
+        if using_stopwords:
+            self.preprocessor.set_stop_list(False)
+
         self.build(documents=documents)
         return self.rank(query=query)

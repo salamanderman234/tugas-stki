@@ -5,6 +5,12 @@
             <h1 class="font-extrabold text-5xl block">Cari Dokumen</h1>
             <form action="/result" class="block mt-5 w-full">
                 <input required class="rounded-md w-full border border-black py-3 px-2 text-sm" type="text" name="q" placeholder="Masukan query pencarian ex: 'Gold silver truck'">
+                <div class="flex justify-end text-sm mt-3">
+                    <div>
+                        <input id="stoplist" type="checkbox" name="remove_stoplist">
+                        <label for="stoplist" class="font-bold">Remove stoplist</label>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

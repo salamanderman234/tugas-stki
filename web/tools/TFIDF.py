@@ -20,7 +20,7 @@ class TFIDFTool():
     def _calculate_idf(self, df_list: dict) -> dict:
         result = {}
         for term, df in df_list.items():
-            result[term] = log10(df)
+            result[term] = log10(df) + 1
         return result
 
     def process(self, documents_tf: dict) -> dict:

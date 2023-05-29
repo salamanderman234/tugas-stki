@@ -7,7 +7,9 @@ import string
 from nltk import word_tokenize
 
 class Preprocessor :
+    
     def __init__(self, lang: str = "eng") -> None:
+        self.__using_stop_list = True
         if lang == "id":
             self.lang = "id"
             self.stopwords = set(stopwords.words("indonesian"))
@@ -16,6 +18,9 @@ class Preprocessor :
             self.lang = "eng"
             self.stopwords = set(stopwords.words("english"))
             self.stemmer = WordNetLemmatizer()
+    
+    def set_stop_list(self, condition = True):
+        self.__using_stop_list = condition
 
     def __clean(self, text: str) -> str:
         steps = [
@@ -54,7 +59,11 @@ class Preprocessor :
     def process(self, text: str) -> list:
         cleaned_text = self.__clean(text=text)
         tokens = self.__tokenize(cleaned_text)
-        tokens = self.__stopwords(tokens)
+
+        if self.__using_stop_list :
+            tokens = self.__stopwords(tokens)
+
+        
         tokens = self.__stem(tokens)
         freq_dist = self.__dist(tokens)
 

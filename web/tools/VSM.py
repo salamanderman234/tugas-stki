@@ -75,7 +75,9 @@ class VSMTool():
         query_vector = self.__calculate_vector(queries_tfidf)
 
         documents_dot_product = self.__calculate_dot_product(query_vector["tfidf_pow"], documents_vector["tfidf_pow"])
-        result = self.__calculate_cosine(query_vector["vector"][0], documents_vector["vector"], documents_dot_product["dot_product_list"])
+        result = {}
+        if len(query_vector["vector"]) > 0:
+            result = self.__calculate_cosine(query_vector["vector"][0], documents_vector["vector"], documents_dot_product["dot_product_list"])
 
         sorted_result = {key: value for key, value in sorted(result.items(), key=lambda item: item[1], reverse=True)} 
         return {
