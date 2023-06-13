@@ -116,6 +116,14 @@
                                         {% endfor %}
                                     {% endif %}
                                 {% endif %}
+                                <tr>
+                                    <td class="border border-black text-center px-3 py-2 font-bold" colspan="{{ tfidf_vsm_result.tfidf_rank|length + 6 }}">
+                                        Total
+                                    </td>
+                                    {% for result in tfidf_vsm_result.tfidf_rank %}
+                                        <td class="border border-black text-center px-3 py-2 font-bold">{{ '%0.3f'|format(result|float) }}</td>
+                                    {% endfor %}
+                                </tr>
                             </tbody>
                         </table>
                         <h2 class="font-bold mt-5">VSM</h2>

@@ -92,12 +92,15 @@ def search_using_tfidf(query: str, documents: list) -> list:
     rank_tool = VSM.VSMTool(matrix["map"])
     result = rank_tool.rank(query_weight_list, document_weight_list["tf_idf_list"])
 
+    tfidf_rank = tfidf_builder.rank(query_matrix)
+
     return {
         "matrix" : matrix,
         "query_matrix": query_matrix,
         "query_tfidf" : query_weight_list,
         "document_tfidf" : document_weight_list,
-        "vsm_result" : result
+        "vsm_result" : result,
+        "tfidf_rank" : tfidf_rank
     }
 
 def search_using_incidence_matrix(query: str, documents: list, using_stopwords=True) -> dict:

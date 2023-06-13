@@ -31,9 +31,22 @@ class TFIDFTool():
         for term, tfs in documents_tf.items():
             result[term] = [tf*idf_list[term] for tf in tfs]
         
+        self.result = result
         return {
             "ddf_list" : ddf_list["result"],
             "df_list": ddf_list["df_list"],
             "idf_list": idf_list,
             "tf_idf_list" : result
         }
+
+    def rank(self, query):
+        result_list = []
+        for key in query["result"]:
+            if key in self.result:
+                list = self.result[key]
+                for index, element in enumerate(list):
+                    if len(result_list) <= index :
+                        result_list.append(element)
+                    else:
+                        result_list[index] += element
+        return result_list
