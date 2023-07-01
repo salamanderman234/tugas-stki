@@ -3,6 +3,7 @@
     <div class="flex justify-center items-center min-h-screen">
         <div class="flex flex-col justify-center items-center w-full px-20 mt-10">
             <h1 class="font-extrabold text-5xl block">Hasil</h1>
+            <!-- {{ tfidf_vsm_result.inverted_index_rank }} -->
             <div class="overflow-auto max-h-96 mt-7 w-full">
                 {% if incidence_matrix_result.result|length > 0 %}
                     <h2 class="font-bold mt-3">Incidence Matrix</h2>
@@ -11,7 +12,7 @@
                             <tr>
                                 <th class="border border-black px-3 py-1 w-1/6">Term</th>
                                 {% for index, document_id in incidence_matrix_result.map.items() %}
-                                    <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                                    <th class="border border-black px-3 py-1">{{ document_id }}</th>
                                 {% endfor %}
                             </tr>
                         </thead>
@@ -33,7 +34,69 @@
             
                 {% endif %}
                 {% if tfidf_vsm_result.vsm_result.result|length > 0 %}
-                    <h2 class="font-bold mt-3">TF-IDF</h2>
+                    <h2 class="font-bold mt-5">Inverted Index</h2>
+                    <table class="border w-full">
+                        <thead>
+                            <tr class="border border-black">
+                                <th class="border border-black px-3 py-1">token</th>
+                                {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
+                                    <th class="border border-black px-3 py-1">{{ document_id }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if tfidf_vsm_result %}
+                                {% if tfidf_vsm_result|length > 0 %}
+                                    {% for term, tf in tfidf_vsm_result.query_matrix.result.items() %}
+                                        <tr class="border border-black">
+                                            <td class="border border-black text-center px-3 py-2">{{ term }}</td>
+                                            {%  if term in tfidf_vsm_result.matrix.result %}
+                                                {% for document_tf in tfidf_vsm_result.matrix.result[term] %}
+                                                    <td class="border border-black text-center px-3 py-2">{{ document_tf }}</td>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for zero in range(tfidf_vsm_result.matrix.map|length) %}
+                                                    <td class="border border-black text-center px-3 py-2">0</td>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                                <tr>
+                                    <th class="border border-black text-center px-3 py-2">Total</th>
+                                    {% for total in tfidf_vsm_result.inverted_index_rank %}
+                                        <td class="border border-black text-center px-3 py-2">
+                                            <b>{{ total }}  </b>
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    <!-- <h2 class="font-bold mt-5">Ranking Inverted Index</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <td class="border border-black text-center px-3 py-2  font-bold">Rank</td>
+                                <td class="border border-black text-center px-3 py-2  font-bold">Score</td>
+                                <td class="border border-black text-center px-3 py-2  font-bold">Document ID</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for score in tfidf_vsm_result.inverted_index_rank|sort(reverse=True) %}
+                                <tr>
+                                    <td class="border border-black text-center px-3 py-2">{{loop.index}}</td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {{ score }}
+                                    </td>
+                                    <td class="border border-black text-center px-3 py-2">
+                                        {{ tfidf_vsm_result.matrix.map[loop.index - 1] }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table> -->
+                    <h2 class="font-bold mt-5">TF-IDF</h2>
                         <table class="border w-full">
                             <thead>
                                 <tr>
@@ -42,16 +105,17 @@
                                     <th class="border border-black px-3 py-1" rowspan="2">df</th>
                                     <th class="border border-black px-3 py-1" rowspan="2">d/df</th>
                                     <th class="border border-black px-3 py-1" rowspan="2">idf</th>
+                                    <th class="border border-black px-3 py-1" rowspan="2">idf + 1</th>
                                     <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length + 1}}">tf-idf</th>
                                 </tr>
                                 <tr>
                                     <th class="border border-black px-3 py-1">Q</th>
                                     {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
-                                        <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                                        <th class="border border-black px-3 py-1">{{ document_id }}</th>
                                     {% endfor %}
                                     <th class="border border-black px-3 py-1">Q</th>
                                     {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
-                                        <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                                        <th class="border border-black px-3 py-1">{{ document_id }}</th>
                                     {% endfor %}
                                 </tr>
                             </thead>
@@ -89,6 +153,13 @@
                                                 </td>
                                                 <td class="border border-black text-center px-3 py-2">
                                                     {% if term in tfidf_vsm_result.document_tfidf.idf_list %}
+                                                        {{ '%0.3f'|format(tfidf_vsm_result.document_tfidf.idf_list[term] - 1|float) }}
+                                                    {% else %}
+                                                        {{ 0 }}
+                                                    {% endif %}
+                                                </td>
+                                                <td class="border border-black text-center px-3 py-2">
+                                                    {% if term in tfidf_vsm_result.document_tfidf.idf_list %}
                                                         {{ '%0.3f'|format(tfidf_vsm_result.document_tfidf.idf_list[term]|float) }}
                                                     {% else %}
                                                         {{ 0 }}
@@ -116,14 +187,45 @@
                                         {% endfor %}
                                     {% endif %}
                                 {% endif %}
-                                <tr>
-                                    <td class="border border-black text-center px-3 py-2 font-bold" colspan="{{ tfidf_vsm_result.tfidf_rank|length + 6 }}">
+                                <!-- <tr>
+                                    <td class="border border-black text-center px-3 py-2 font-bold" colspan="{{ tfidf_vsm_result.tfidf_rank|length + 7 }}">
                                         Total
                                     </td>
-                                    {% for result in tfidf_vsm_result.tfidf_rank %}
-                                        <td class="border border-black text-center px-3 py-2 font-bold">{{ '%0.3f'|format(result|float) }}</td>
+                                    {% for key, value in tfidf_vsm_result.tfidf_rank.items() %}
+                                        <td class="border border-black text-center px-3 py-2 font-bold">{{ '%0.3f'|format(value|float) }}</td>
                                     {% endfor %}
+                                </tr> -->
+                            </tbody>
+                        </table>
+                        <!-- {{ tfidf_vsm_result.tfidf_rank.keys() }} -->
+
+                        <h2 class="font-bold mt-5">Ranking TFIDF</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td class="border border-black text-center px-3 py-2  font-bold">Rank</td>
+                                    <td class="border border-black text-center px-3 py-2  font-bold">Document ID</td>
+                                    <td class="border border-black text-center px-3 py-2  font-bold">Score</td>
+                                    <td class="border border-black text-center px-3 py-2  font-bold">Content</td>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                {% for index, score in tfidf_vsm_result.tfidf_rank.items() %}
+                                <tr>
+                                        <td class="border border-black text-center px-3 py-2">{{loop.index}}</td>
+                                        <td class="border border-black text-center px-3 py-2">{{tfidf_vsm_result.matrix.map[index]}}</td>
+                                        <td class="border border-black text-center px-3 py-2">
+                                            {{ '%0.4f'|format(score|float) }}
+                                        </td>
+                                        {% for document in documents %}
+                                            {% if document.name == tfidf_vsm_result.matrix.map[index] %}
+                                                <td class="border border-black text-center px-3 py-2">
+                                                    {{ document.content }}
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                         <h2 class="font-bold mt-5">VSM</h2>
@@ -131,16 +233,16 @@
                             <thead>
                                 <tr>
                                     <th class="border border-black px-3 py-1" rowspan="2">token</th>
-                                    <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length + 1 }}">tf-idf^2</th>
-                                    <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length}}">Q*D</th>
+                                    <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length + 1 }}">Di</th>
+                                    <th class="border border-black px-3 py-1" colspan="{{ tfidf_vsm_result.matrix.map|length}}">Q*Di</th>
                                 </tr>
                                 <tr>
-                                    <th class="border border-black px-3 py-1">Q</th>
+                                    <th class="border border-black px-3 py-1">Q{{ "²"}}</th>
                                     {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
-                                        <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                                        <th class="border border-black px-3 py-1">{{ document_id }}{{ "²"}}</th>
                                     {% endfor %}
                                     {% for index, document_id in tfidf_vsm_result.matrix.map.items() %}
-                                        <th class="border border-black px-3 py-1">doc-{{ document_id }}</th>
+                                        <th class="border border-black px-3 py-1">Q{{ "²"}}*{{ document_id }}{{ "²"}}</th>
                                     {% endfor %}
                                 </tr>
                             </thead>
@@ -182,8 +284,8 @@
                                 <tr>
                                     <td rowspan="2" class="border border-black text-center px-3 py-2"></td>
                                     <td class="border border-black text-center px-3 py-2 font-bold">Sqrt(Q)</td>
-                                    <td colspan="{{ tfidf_vsm_result.matrix.map|length}}" class="border font-bold border-black text-center px-3 py-2">Sqrt(D)</td>
-                                    <td colspan="{{ tfidf_vsm_result.matrix.map|length}}" class="border font-bold border-black text-center px-3 py-2">Sum(Q*D)</td>
+                                    <td colspan="{{ tfidf_vsm_result.matrix.map|length}}" class="border font-bold border-black text-center px-3 py-2">Sqrt(Di)</td>
+                                    <td colspan="{{ tfidf_vsm_result.matrix.map|length}}" class="border font-bold border-black text-center px-3 py-2">Sum(Q*Di)</td>
                                 </tr>
                                 <tr>
                                     <td class="border border-black text-center px-3 py-2 font-bold">
@@ -204,14 +306,43 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <h2 class="font-bold mt-3">Score</h2>
+                        <div class="my-5">
+                            <h2 class="font-bold mb-3">Nilai Cosinus VSM</h2>
+                            {% for di, qdi in tfidf_vsm_result.vsm_result.documents_vector.vector|zip(tfidf_vsm_result.vsm_result.documents_dot_product.dot_product_list) %}
+                                <div class="grid grid-cols-5 gap-1 w-1/4 mb-5">
+                                    <div class="col-span-2">
+                                        <b>{{ documents[loop.index - 1].name }}</b>
+                                    </div>
+                                    <div class="w-full col-span-3">
+                                        <div class="flex">
+                                            <span>=</span>
+                                            <div class="ml-2">
+                                                <span>{{ '%0.4f'|format(qdi) }}</span>
+                                                <hr class="block border-black">
+                                                <span>(
+                                                    {% if tfidf_vsm_result.vsm_result.query_vector.vector|length > 0 %}
+                                                        {{ '%0.4f'|format(tfidf_vsm_result.vsm_result.query_vector.vector[0]|float) }}
+                                                    {% endif %} * {{ '%0.4f'|format(di) }})
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex">
+                                            <span>=</span>
+                                            <div class="ml-2">
+                                                <b>{{ '%0.4f'|format(tfidf_vsm_result.vsm_result.result[documents[loop.index - 1].name])|float }}</b>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <h2 class="font-bold mt-3">Ranking VSM</h2>
                         <table>
                             <thead>
                                 <tr>
                                     <td class="border border-black text-center px-3 py-2  font-bold">Rank</td>
                                     <td class="border border-black text-center px-3 py-2  font-bold">Document ID</td>
                                     <td class="border border-black text-center px-3 py-2  font-bold">Score</td>
-                                    <td class="border border-black text-center px-3 py-2  font-bold">Title</td>
                                     <td class="border border-black text-center px-3 py-2  font-bold">Content</td>
                                 </tr>
                             </thead>
@@ -224,10 +355,7 @@
                                             {{ '%0.4f'|format(score|float) }}
                                         </td>
                                         {% for document in documents %}
-                                            {% if document.id == id %}
-                                                <td class="border border-black text-center px-3 py-2">
-                                                    {{ document.name }}
-                                                </td>
+                                            {% if document.name == id %}
                                                 <td class="border border-black text-center px-3 py-2">
                                                     {{ document.content }}
                                                 </td>

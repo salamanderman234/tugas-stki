@@ -11,13 +11,26 @@ class InvertedIndexTool():
         
         return terms
     
+    def rank(self, query: list, matrix: dict):
+        result = matrix
+        total = []
+        for q in query :
+            if q in result :
+                for index, tf in enumerate(result[q]):
+                    if index < len(total):
+                        total[index] += tf
+                    else :
+                        total.append(tf)
+        return total
+
+    
     def build(self, documents: list) -> list:
         terms = self.__get_term_list(documents=documents)
         result = {term : [] for term in terms}
 
         self.map = {}
         for index, document in enumerate(documents):
-            self.map[index] = document["id"]
+            self.map[index] = document["name"]
 
         for term in terms :
             for document in documents :
@@ -27,4 +40,5 @@ class InvertedIndexTool():
                     result[term].append(0)
         
         self.matrix = result
+
         return {"map" : self.map, "result" : result}

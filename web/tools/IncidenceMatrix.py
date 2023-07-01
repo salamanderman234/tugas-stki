@@ -19,7 +19,7 @@ class IncidenceMatrixTool :
 
         self.map = {}
         for index, document in enumerate(documents):
-            self.map[index] = document["id"]
+            self.map[index] = document["name"]
 
         for term in terms :
             for document in documents :

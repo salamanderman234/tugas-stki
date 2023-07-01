@@ -1,4 +1,5 @@
 from math import log10
+import numpy as np
 
 class TFIDFTool():
     def __calculate_ddf(self, documents_tf: dict) -> dict:
@@ -40,13 +41,18 @@ class TFIDFTool():
         }
 
     def rank(self, query):
-        result_list = []
+        result_list = {}
         for key in query["result"]:
             if key in self.result:
-                list = self.result[key]
-                for index, element in enumerate(list):
+                rank_list = self.result[key]
+                for index, element in enumerate(rank_list):
                     if len(result_list) <= index :
-                        result_list.append(element)
+                        result_list[index] = element
                     else:
                         result_list[index] += element
+        keys = list(result_list.keys())
+        values = list(result_list.values())
+        sorted_value_index = np.argsort(values)[::-1]
+        result_list = {keys[i]: values[i] for i in sorted_value_index}
+
         return result_list

@@ -82,8 +82,10 @@ def search_using_tfidf(query: str, documents: list) -> list:
     query_matrix = matrix_builder.build(documents=[{
         "id" : "-1",
         "content": query,
+        "name" : "as",
         "tf": preprocessor.process(query)
     }])
+    inverted_index_rank = matrix_builder.rank(list(query_matrix["result"].keys()), matrix['result'])
     query_weight_list = {}
     for query_term, query_tf in query_matrix["result"].items():
         if query_term in document_weight_list["idf_list"]:
@@ -100,7 +102,8 @@ def search_using_tfidf(query: str, documents: list) -> list:
         "query_tfidf" : query_weight_list,
         "document_tfidf" : document_weight_list,
         "vsm_result" : result,
-        "tfidf_rank" : tfidf_rank
+        "tfidf_rank" : tfidf_rank,
+        "inverted_index_rank" : inverted_index_rank
     }
 
 def search_using_incidence_matrix(query: str, documents: list, using_stopwords=True) -> dict:

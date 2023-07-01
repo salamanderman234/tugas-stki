@@ -7,6 +7,7 @@ load_dotenv()
 APP_SECRET = os.environ.get("APP_SECRET")
 DATABASE_URI = os.environ.get("DATABASE_URI")
 app = Flask(__name__)
+app.jinja_env.filters['zip'] = zip
 app.config["SECRET_KEY"] = APP_SECRET
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
 print(os.environ.get("DATABASE_URI"))
